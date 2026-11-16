@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Adena Monitor</title>
+<link rel="icon" href="logo.png">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div id="signin" class="signin hidden">
+  <div class="signin-card">
+    <img src="logo.png" alt="">
+    <h1 id="signin-title">Adena Monitor</h1>
+    <p id="signin-sub">Sign in with your school Google account.</p>
+    <button id="signin-btn" class="btn primary">Sign in with Google</button>
+    <p id="signin-err" class="err"></p>
+  </div>
+</div>
+
+<div id="app" class="hidden">
+  <header class="top">
+    <div class="brand"><img src="logo.png" alt=""><span id="brand-name">Adena Monitor</span></div>
+    <div class="spacer"></div>
+    <span id="me" class="me"></span>
+    <button id="signout" class="btn ghost small">Sign out</button>
+  </header>
+  <div class="layout">
+    <nav id="side" class="side"></nav>
+    <main id="main" class="main"></main>
+  </div>
+</div>
+
+<div id="drawer" class="drawer hidden"></div>
+<div id="modal" class="modal hidden"><div class="modal-card" id="modal-card"></div></div>
+<div id="toast" class="toast hidden"></div>
+
+<script type="module" src="app.js"></script>
+</body>
+</html>
