@@ -12,13 +12,22 @@
 //      allowOnly = students may ONLY visit these domains
 //   domains:  ["coolmathgames.com", ...],
 //   keywords: ["proxy", ...],               // block policies only, matched anywhere in the URL
-//   targets:  { all: true, courses: {courseId: true}, students: {emailKey: true} },
+//   targets:  { all: true, grades: {'7': true}, courses: {courseId: true}, students: {emailKey: true} },
 //   except:   { emailKey: true },           // students this policy never applies to
 //   schedule: { enabled: false, days: [1,2,3,4,5], start: "07:30", end: "15:30" }
 // }
 
 export function emailKey(email) {
   return String(email || '').trim().toLowerCase().replace(/\./g, ',');
+}
+
+export const GRADE_ORDER = ['K', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'];
+export function gradeLabel(g) {
+  if (!g) return 'No grade';
+  if (g === 'K') return 'Kindergarten';
+  const n = Number(g);
+  const sfx = n % 100 >= 11 && n % 100 <= 13 ? 'th' : ({ 1: 'st', 2: 'nd', 3: 'rd' }[n % 10] || 'th');
+  return `${n}${sfx} grade`;
 }
 
 export function keyToEmail(key) {
@@ -70,20 +79,21 @@ export function inSchedule(schedule, date = new Date()) {
   return start <= end ? now >= start && now < end : now >= start || now < end;
 }
 
-export function policyApplies(policy, studentKeyValue, courses) {
+export function policyApplies(policy, studentKeyValue, courses, grade) {
   if (!policy || policy.enabled === false) return false;
   if (policy.except && policy.except[studentKeyValue]) return false;
   const t = policy.targets || { all: true };
   if (t.all) return true;
   if (t.students && t.students[studentKeyValue]) return true;
+  if (grade && t.grades && t.grades[grade]) return true;
   return Object.keys(t.courses || {}).some((c) => courses && courses[c]);
 }
 
 // Returns the list of policies in force for one student right now.
-export function activePolicies(policies, studentKeyValue, courses, date = new Date()) {
+export function activePolicies(policies, studentKeyValue, courses, date = new Date(), grade = '') {
   return Object.entries(policies || {})
     .map(([id, p]) => ({ id, ...p }))
-    .filter((p) => policyApplies(p, studentKeyValue, courses) && inSchedule(p.schedule, date))
+    .filter((p) => policyApplies(p, studentKeyValue, courses, grade) && inSchedule(p.schedule, date))
     .map((p) => ({
       id: p.id,
       name: p.name || 'Untitled policy',
