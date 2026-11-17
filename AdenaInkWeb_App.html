@@ -71,13 +71,28 @@ svg{display:block;pointer-events:none}
 .szdot{border-radius:50%;background:#fff}
 .pgn{display:inline-flex;align-items:center;gap:2px}
 .pgn span{min-width:40px;text-align:center;font-weight:700;font-size:13px}
-#top{position:fixed;left:12px;top:12px;z-index:30;display:flex;align-items:center;gap:6px;padding:4px 6px 4px 4px;border-radius:14px;max-width:calc(100vw - 24px)}
-#top img{width:30px;height:30px;border-radius:8px;background:#fff}
-#nbname{font-weight:700;max-width:280px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:6px 8px;border-radius:8px;text-align:left}
-#nbname:hover{background:rgba(255,255,255,.13)}
-#nbnameIn{width:240px;padding:6px 8px;border-radius:8px;border:1px solid var(--sky);background:#fff;color:var(--ink)}
-#savest{font-size:12px;color:#bcd6ef;white-space:nowrap;padding:0 6px}
-#savest.err{color:#ffb4b9}
+#top{position:fixed;left:12px;top:12px;z-index:30;padding:3px;border-radius:12px}
+#fileBtn{display:flex;align-items:center;gap:8px;height:36px;padding:0 8px 0 3px;border-radius:9px;font-weight:700;font-size:13px}
+#fileBtn img{width:30px;height:30px;border-radius:7px;background:#fff}
+#fileBtn:hover,#fileBtn.on{background:rgba(255,255,255,.13)}
+.sdot{width:9px;height:9px;border-radius:50%;background:#30a46c;flex:none}
+.sdot.dirty{background:#f5b041}.sdot.saving{background:#9bcbeb;animation:pl 1s infinite}.sdot.err{background:#e5484d}.sdot.off{background:#8b8d98}
+@keyframes pl{50%{opacity:.25}}
+#fileMenu{position:fixed;left:12px;top:58px;z-index:40;border-radius:14px;padding:8px;width:290px}
+.fm-name{font-weight:800;font-size:14px;padding:6px 10px 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fm-st{font-size:12px;color:#bcd6ef;padding:2px 10px 8px;display:flex;align-items:center;gap:6px}
+.fmi{display:flex;align-items:center;gap:10px;width:100%;padding:9px 10px;border-radius:9px;text-align:left;font-weight:600}
+.fmi:hover{background:rgba(255,255,255,.12)}
+.fmi small{margin-left:auto;color:#bcd6ef;font-weight:500}
+.fsep{height:1px;background:rgba(155,203,235,.25);margin:6px 4px}
+.otabs{display:flex;gap:6px;margin-bottom:10px}
+.otabs button{flex:1;padding:9px;border-radius:10px;border:1px solid var(--line);font-weight:700;color:var(--muted);background:#f7f9fc}
+.otabs button.on{background:var(--navy);color:#fff;border-color:var(--navy)}
+.pdfhint{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:#eef5fd;border:1px solid #cfe0f5;border-radius:10px;padding:8px 10px;margin-bottom:10px;font-size:13px;color:var(--navy2)}
+.linkbtn{font-weight:700;color:var(--navy3);text-decoration:underline;padding:2px 4px}
+.pdfico{width:30px;height:36px;border-radius:5px;background:#e5484d;color:#fff;font:800 9px system-ui;display:grid;place-items:end center;padding-bottom:5px;flex:none}
+#modal .mb.wide{width:min(560px,94vw)}
+#modal .nblist{max-height:min(420px,60vh)}
 .pop{position:fixed;z-index:40;border-radius:14px;padding:8px}
 .pal{display:grid;grid-template-columns:repeat(6,26px);gap:7px}
 .pal button{width:26px;height:26px;border-radius:50%;border:2px solid rgba(255,255,255,.35)}
@@ -190,8 +205,10 @@ input[type=range]{accent-color:var(--sky);width:170px}
     </section>
     <section class="lcard">
       <h2><span class="badge"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 18a4 4 0 0 1-.5-7.97A5.5 5.5 0 0 1 17 8.5a4.5 4.5 0 0 1 .5 9.5z"/></svg></span>Open from Drive</h2>
-      <p class="sub">Notebooks saved here or with the Adena Ink Chrome extension. They live in the <b>Adena Ink</b> folder in your Drive.</p>
+      <p class="sub">Your notebooks (made here or with the Adena Ink Chrome extension), or any PDF in your Drive to write on.</p>
+      <div class="otabs" id="otabs"><button data-ot="nb" class="on">My notebooks</button><button data-ot="pdf">PDFs</button></div>
       <input class="search" id="q" placeholder="Search your notebooks" autocomplete="off">
+      <div class="pdfhint" id="pdfhint" hidden><span><b>Tap a PDF to open it.</b> Each page becomes a board you can write on (up to 80 pages).</span><button class="linkbtn" id="pdfUp">Upload a PDF from this computer</button></div>
       <div class="nblist" id="nblist"><div class="spin"></div></div>
     </section>
   </div>
@@ -206,9 +223,7 @@ input[type=range]{accent-color:var(--sky);width:170px}
   <div id="overlay"></div>
 
   <div id="top" class="navy">
-    <button class="ib" id="homeBtn" title="Back to start (saves first)"><img src="data:image/png;base64,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" alt=""></button>
-    <button id="nbname" title="Rename notebook">Untitled</button>
-    <span id="savest"></span>
+    <button id="fileBtn" title="File: save, rename, add a PDF, back to start"><img src="data:image/png;base64,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" alt=""><span>File</span><span class="sdot" id="sdot"></span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg></button>
   </div>
 
   <div id="rail" class="navy" hidden></div>
@@ -241,6 +256,7 @@ input[type=range]{accent-color:var(--sky);width:170px}
 
 <div id="toast"></div>
 <input type="file" id="imgIn" accept="image/*" hidden>
+<input type="file" id="pdfIn" accept="application/pdf,.pdf" hidden>
 
 <script>
 // Adena Ink subject templates (original drawings, vector, drawn on a canvas).
@@ -763,7 +779,7 @@ const NOTE_STYLES = {
   yellow: { bg: '#fff3a3', fg: '#2b2b2b' }, pink: { bg: '#ffc4d6', fg: '#2b2b2b' }, blue: { bg: '#bfe4ff', fg: '#2b2b2b' },
   green: { bg: '#c9f0cf', fg: '#2b2b2b' }, card: { bg: '#ffffff', fg: '#0b1f4d', card: true },
 };
-const ICONS = {"pen": "<path d=\"M12 20h9\"/><path d=\"M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z\"/>", "hl": "<path d=\"m9 11-6 6v3h9l3-3\"/><path d=\"m22 12-4.6 4.6a2 2 0 0 1-2.8 0l-5.2-5.2a2 2 0 0 1 0-2.8L14 4\"/>", "eraser": "<path d=\"m7 21-4.3-4.3c-1-1-1-2.5 0-3.4l9.6-9.6c1-1 2.5-1 3.4 0l5.6 5.6c1 1 1 2.5 0 3.4L13 21\"/><path d=\"M22 21H7\"/><path d=\"m5 11 9 9\"/>", "select": "<path d=\"M4 4.7a.5.5 0 0 1 .7-.7l16 6.5a.5.5 0 0 1-.1.9l-6.1 1.6a2 2 0 0 0-1.4 1.4l-1.6 6.1a.5.5 0 0 1-.9.1z\"/>", "text": "<path d=\"M4 7V4h16v3\"/><path d=\"M9 20h6\"/><path d=\"M12 4v16\"/>", "laser": "<circle cx=\"12\" cy=\"12\" r=\"4\"/><path d=\"M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M6.3 17.7l-1.4 1.4M19.1 4.9l-1.4 1.4\"/>", "shapes": "<rect x=\"3\" y=\"3\" width=\"10\" height=\"10\" rx=\"1\"/><circle cx=\"16.5\" cy=\"16.5\" r=\"4.5\"/>", "undo": "<path d=\"M9 14 4 9l5-5\"/><path d=\"M4 9h10.5a5.5 5.5 0 0 1 0 11H11\"/>", "redo": "<path d=\"m15 14 5-5-5-5\"/><path d=\"M20 9H9.5a5.5 5.5 0 0 0 0 11H13\"/>", "trash": "<path d=\"M3 6h18\"/><path d=\"M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6\"/><path d=\"M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2\"/>", "left": "<path d=\"m15 18-6-6 6-6\"/>", "right": "<path d=\"m9 18 6-6-6-6\"/>", "boards": "<rect x=\"3\" y=\"4\" width=\"18\" height=\"13\" rx=\"2\"/><path d=\"M8 21h8M12 17v4\"/>", "cap": "<path d=\"M22 10 12 5 2 10l10 5 10-5Z\"/><path d=\"M6 12v5c3 3 9 3 12 0v-5\"/>", "grid": "<rect x=\"3\" y=\"3\" width=\"7\" height=\"7\" rx=\"1\"/><rect x=\"14\" y=\"3\" width=\"7\" height=\"7\" rx=\"1\"/><rect x=\"14\" y=\"14\" width=\"7\" height=\"7\" rx=\"1\"/><rect x=\"3\" y=\"14\" width=\"7\" height=\"7\" rx=\"1\"/>", "download": "<path d=\"M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4\"/><path d=\"m7 10 5 5 5-5\"/><path d=\"M12 15V3\"/>", "close": "<path d=\"M18 6 6 18\"/><path d=\"m6 6 12 12\"/>", "exam": "<rect x=\"8\" y=\"2\" width=\"8\" height=\"4\" rx=\"1\"/><path d=\"M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2\"/><path d=\"M12 11h4M12 16h4M8 11h.01M8 16h.01\"/>", "timer": "<path d=\"M10 2h4\"/><path d=\"m12 14 3-3\"/><circle cx=\"12\" cy=\"14\" r=\"8\"/>", "dice": "<rect x=\"3\" y=\"3\" width=\"18\" height=\"18\" rx=\"3\"/><g stroke=\"none\" fill=\"currentColor\"><circle cx=\"8\" cy=\"8\" r=\"1.3\"/><circle cx=\"16\" cy=\"8\" r=\"1.3\"/><circle cx=\"12\" cy=\"12\" r=\"1.3\"/><circle cx=\"8\" cy=\"16\" r=\"1.3\"/><circle cx=\"16\" cy=\"16\" r=\"1.3\"/></g>", "strip": "<rect x=\"3\" y=\"8\" width=\"18\" height=\"8\" rx=\"2\"/><path d=\"M3 4h18M3 20h18\"/>", "ruler": "<path d=\"M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.4 2.4 0 0 1 0-3.4l2.6-2.6a2.4 2.4 0 0 1 3.4 0Z\"/><path d=\"m14.5 12.5 2-2M11.5 9.5l2-2M8.5 6.5l2-2M17.5 15.5l2-2\"/>", "prot": "<path d=\"M3 18a9 9 0 0 1 18 0Z\"/><path d=\"M12 18V9M5.5 18l1.5-3M18.5 18 17 15\"/>", "spot": "<rect x=\"3\" y=\"3\" width=\"18\" height=\"18\" rx=\"2\" stroke-dasharray=\"3 3\"/><circle cx=\"12\" cy=\"12\" r=\"3.5\"/>", "cover": "<rect x=\"3\" y=\"4\" width=\"18\" height=\"16\" rx=\"2\"/><path d=\"m6 15 4-4 3 3 2-2 3 3\"/>", "fade": "<path d=\"m14.5 5.5 4 4L8 20l-5 1 1-5Z\"/><path d=\"M3 4h2M7 3v2M19 15h2\"/>", "lens": "<circle cx=\"10\" cy=\"10\" r=\"6\"/><path d=\"m15 15 6 6M8 10h4M10 8v4\"/>", "cam": "<path d=\"M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1Z\"/><circle cx=\"12\" cy=\"13.5\" r=\"3.5\"/>", "shot": "<path d=\"M6 2v14a2 2 0 0 0 2 2h14\"/><path d=\"M18 22V8a2 2 0 0 0-2-2H2\"/>", "rec": "<circle cx=\"12\" cy=\"12\" r=\"9\"/><circle cx=\"12\" cy=\"12\" r=\"3\" fill=\"currentColor\"/>", "img": "<rect x=\"3\" y=\"3\" width=\"18\" height=\"18\" rx=\"2\"/><circle cx=\"9\" cy=\"9\" r=\"2\"/><path d=\"m21 15-5-5L5 21\"/>", "print": "<path d=\"M6 9V2h12v7\"/><rect x=\"6\" y=\"14\" width=\"12\" height=\"8\"/><path d=\"M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2\"/>"};
+const ICONS = {"pen": "<path d=\"M12 20h9\"/><path d=\"M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z\"/>", "hl": "<path d=\"m9 11-6 6v3h9l3-3\"/><path d=\"m22 12-4.6 4.6a2 2 0 0 1-2.8 0l-5.2-5.2a2 2 0 0 1 0-2.8L14 4\"/>", "eraser": "<path d=\"m7 21-4.3-4.3c-1-1-1-2.5 0-3.4l9.6-9.6c1-1 2.5-1 3.4 0l5.6 5.6c1 1 1 2.5 0 3.4L13 21\"/><path d=\"M22 21H7\"/><path d=\"m5 11 9 9\"/>", "select": "<path d=\"M4 4.7a.5.5 0 0 1 .7-.7l16 6.5a.5.5 0 0 1-.1.9l-6.1 1.6a2 2 0 0 0-1.4 1.4l-1.6 6.1a.5.5 0 0 1-.9.1z\"/>", "text": "<path d=\"M4 7V4h16v3\"/><path d=\"M9 20h6\"/><path d=\"M12 4v16\"/>", "laser": "<circle cx=\"12\" cy=\"12\" r=\"4\"/><path d=\"M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M6.3 17.7l-1.4 1.4M19.1 4.9l-1.4 1.4\"/>", "shapes": "<rect x=\"3\" y=\"3\" width=\"10\" height=\"10\" rx=\"1\"/><circle cx=\"16.5\" cy=\"16.5\" r=\"4.5\"/>", "undo": "<path d=\"M9 14 4 9l5-5\"/><path d=\"M4 9h10.5a5.5 5.5 0 0 1 0 11H11\"/>", "redo": "<path d=\"m15 14 5-5-5-5\"/><path d=\"M20 9H9.5a5.5 5.5 0 0 0 0 11H13\"/>", "trash": "<path d=\"M3 6h18\"/><path d=\"M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6\"/><path d=\"M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2\"/>", "left": "<path d=\"m15 18-6-6 6-6\"/>", "right": "<path d=\"m9 18 6-6-6-6\"/>", "boards": "<rect x=\"3\" y=\"4\" width=\"18\" height=\"13\" rx=\"2\"/><path d=\"M8 21h8M12 17v4\"/>", "cap": "<path d=\"M22 10 12 5 2 10l10 5 10-5Z\"/><path d=\"M6 12v5c3 3 9 3 12 0v-5\"/>", "grid": "<rect x=\"3\" y=\"3\" width=\"7\" height=\"7\" rx=\"1\"/><rect x=\"14\" y=\"3\" width=\"7\" height=\"7\" rx=\"1\"/><rect x=\"14\" y=\"14\" width=\"7\" height=\"7\" rx=\"1\"/><rect x=\"3\" y=\"14\" width=\"7\" height=\"7\" rx=\"1\"/>", "download": "<path d=\"M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4\"/><path d=\"m7 10 5 5 5-5\"/><path d=\"M12 15V3\"/>", "close": "<path d=\"M18 6 6 18\"/><path d=\"m6 6 12 12\"/>", "exam": "<rect x=\"8\" y=\"2\" width=\"8\" height=\"4\" rx=\"1\"/><path d=\"M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2\"/><path d=\"M12 11h4M12 16h4M8 11h.01M8 16h.01\"/>", "timer": "<path d=\"M10 2h4\"/><path d=\"m12 14 3-3\"/><circle cx=\"12\" cy=\"14\" r=\"8\"/>", "dice": "<rect x=\"3\" y=\"3\" width=\"18\" height=\"18\" rx=\"3\"/><g stroke=\"none\" fill=\"currentColor\"><circle cx=\"8\" cy=\"8\" r=\"1.3\"/><circle cx=\"16\" cy=\"8\" r=\"1.3\"/><circle cx=\"12\" cy=\"12\" r=\"1.3\"/><circle cx=\"8\" cy=\"16\" r=\"1.3\"/><circle cx=\"16\" cy=\"16\" r=\"1.3\"/></g>", "strip": "<rect x=\"3\" y=\"8\" width=\"18\" height=\"8\" rx=\"2\"/><path d=\"M3 4h18M3 20h18\"/>", "ruler": "<path d=\"M21.3 15.3a2.4 2.4 0 0 1 0 3.4l-2.6 2.6a2.4 2.4 0 0 1-3.4 0L2.7 8.7a2.4 2.4 0 0 1 0-3.4l2.6-2.6a2.4 2.4 0 0 1 3.4 0Z\"/><path d=\"m14.5 12.5 2-2M11.5 9.5l2-2M8.5 6.5l2-2M17.5 15.5l2-2\"/>", "prot": "<path d=\"M3 18a9 9 0 0 1 18 0Z\"/><path d=\"M12 18V9M5.5 18l1.5-3M18.5 18 17 15\"/>", "spot": "<rect x=\"3\" y=\"3\" width=\"18\" height=\"18\" rx=\"2\" stroke-dasharray=\"3 3\"/><circle cx=\"12\" cy=\"12\" r=\"3.5\"/>", "cover": "<rect x=\"3\" y=\"4\" width=\"18\" height=\"16\" rx=\"2\"/><path d=\"m6 15 4-4 3 3 2-2 3 3\"/>", "fade": "<path d=\"m14.5 5.5 4 4L8 20l-5 1 1-5Z\"/><path d=\"M3 4h2M7 3v2M19 15h2\"/>", "lens": "<circle cx=\"10\" cy=\"10\" r=\"6\"/><path d=\"m15 15 6 6M8 10h4M10 8v4\"/>", "cam": "<path d=\"M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1Z\"/><circle cx=\"12\" cy=\"13.5\" r=\"3.5\"/>", "shot": "<path d=\"M6 2v14a2 2 0 0 0 2 2h14\"/><path d=\"M18 22V8a2 2 0 0 0-2-2H2\"/>", "rec": "<circle cx=\"12\" cy=\"12\" r=\"9\"/><circle cx=\"12\" cy=\"12\" r=\"3\" fill=\"currentColor\"/>", "img": "<rect x=\"3\" y=\"3\" width=\"18\" height=\"18\" rx=\"2\"/><circle cx=\"9\" cy=\"9\" r=\"2\"/><path d=\"m21 15-5-5L5 21\"/>", "save": "<path d=\"M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z\"/><path d=\"M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7\"/><path d=\"M7 3v4a1 1 0 0 0 1 1h7\"/>", "pdf": "<path d=\"M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z\"/><path d=\"M14 2v4a2 2 0 0 0 2 2h4\"/><path d=\"M12 12v6M9 15l3 3 3-3\"/>", "home": "<path d=\"M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8\"/><path d=\"M3 10a2 2 0 0 1 .7-1.5l7-6a2 2 0 0 1 2.6 0l7 6a2 2 0 0 1 .7 1.5v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z\"/>", "print": "<path d=\"M6 9V2h12v7\"/><rect x=\"6\" y=\"14\" width=\"12\" height=\"8\"/><path d=\"M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2\"/>"};
 const ic = (k, sz) => '<svg viewBox="0 0 24 24" width="' + (sz || 20) + '" height="' + (sz || 20) + '" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + ICONS[k] + '</svg>';
 
 // ------------------------------------------------------------- server
@@ -1289,8 +1305,8 @@ function openPop(kind, anchor) {
     el.innerHTML = '<div class="shp">' + SHAPES.map(([k, l]) => '<button data-s="' + k + '" class="' + (S.shape === k ? 'on' : '') + '" title="' + l + '">' + ic2(SHAPE_SVG[k]) + '</button>').join('') + '</div><div style="font-size:11px;color:#bcd6ef;margin-top:6px;text-align:center">Hold Shift for a perfect square or circle</div>';
     el.onclick = (e) => { const b = e.target.closest('[data-s]'); if (!b) return; S.shape = b.dataset.s; setTool('shape'); };
   } else if (kind === 'erase') {
-    el.innerHTML = '<div class="seg poprow"><button data-m="whole" class="' + (S.eraseMode === 'whole' ? 'on' : '') + '">Whole stroke</button><button data-m="partial" class="' + (S.eraseMode === 'partial' ? 'on' : '') + '">Rub out part</button></div>';
-    el.onclick = (e) => { const b = e.target.closest('[data-m]'); if (!b) return; S.eraseMode = b.dataset.m; closePops(); toast(S.eraseMode === 'whole' ? 'Eraser removes a whole line or object' : 'Eraser rubs out just where you drag'); };
+    el.innerHTML = '<div class="seg poprow"><button data-m="whole" title="Delete the whole drawing you touch" class="' + (S.eraseMode === 'whole' ? 'on' : '') + '">Whole</button><button data-m="partial" title="Trim: cut just a small piece out of what you touch" class="' + (S.eraseMode === 'partial' ? 'on' : '') + '">Trim</button></div>';
+    el.onclick = (e) => { const b = e.target.closest('[data-m]'); if (!b) return; S.eraseMode = b.dataset.m; closePops(); toast(S.eraseMode === 'whole' ? 'Whole: deletes the whole drawing you touch' : 'Trim: cuts just a small piece out of what you touch'); };
   }
   pops.appendChild(el);
   const r = anchor.getBoundingClientRect(), w = el.offsetWidth;
@@ -1313,7 +1329,7 @@ function renderBoardsMenu() {
   const pg = P();
   menuEl.innerHTML = head('Boards') +
     '<div class="sec first">Background of this board</div><div class="bgs">' + BGS.map(([k, l]) => '<button class="card' + (pg.bg === k ? ' on' : '') + '" data-bg="' + k + '"><canvas width="96" height="60" data-bgp="' + k + '" style="width:100%;border-radius:6px"></canvas>' + l + '</button>').join('') + '</div>' +
-    '<div class="sec">Add a board</div><div class="bgs">' + BGS.map(([k, l]) => '<button class="card" data-new="' + k + '">+ ' + l + '</button>').join('') + '</div>' +
+    '<div class="sec">Add a board</div><div class="bgs">' + BGS.map(([k, l]) => '<button class="card" data-new="' + k + '">+ ' + l + '</button>').join('') + '<button class="card" data-pdf="1">+ PDF pages</button></div>' +
     '<div class="sec">Show</div><div class="row" style="justify-content:flex-start"><button class="btn" data-rail="1">' + ($('rail').hidden ? 'Show board list on the left' : 'Hide board list') + '</button><button class="btn" data-dup="1">Duplicate this board</button><button class="btn" data-ren="1">Rename this board</button></div>';
   menuEl.querySelectorAll('[data-bgp]').forEach((c) => { const g = c.getContext('2d'); g.scale(96 / 640, 60 / 400); drawBg(g, { bg: c.dataset.bgp }, 640, 400); });
   menuEl.onclick = async (e) => {
@@ -1321,6 +1337,7 @@ function renderBoardsMenu() {
     const b = e.target.closest('button'); if (!b) return;
     if (b.dataset.bg) { P().bg = b.dataset.bg; changed(); renderBoardsMenu(); }
     else if (b.dataset.new) { addPage(b.dataset.new); closeMenu(); }
+    else if (b.dataset.pdf) { closeMenu(); openPdfPicker(); }
     else if (b.dataset.rail) { $('rail').hidden = !$('rail').hidden; renderRail(); renderBoardsMenu(); }
     else if (b.dataset.dup) { const p = P(), n = { ...mkPage(p.bg, p.name + ' copy'), snap: p.snap, objs: p.objs.map((o) => ({ ...o, id: uid++ })) }; S.pages.splice(S.pi + 1, 0, n); gotoPage(S.pi + 1); changed(); closeMenu(); }
     else if (b.dataset.ren) { closeMenu(); renamePage(S.pi); }
@@ -1679,10 +1696,15 @@ document.addEventListener('keydown', (e) => {
 });
 
 // ------------------------------------------------------------- notebooks + Drive
-let dirty = false, saveT = null, saving = false, again = false;
+let dirty = false, saveT = null, savingP = null, statusText = '', statusKind = 'ok';
 const hasContent = () => S.pages.some((p) => p.objs.length || p.snap || p.bg !== 'white') || S.pages.length > 1;
 function markDirty() { dirty = true; clearTimeout(saveT); saveT = setTimeout(saveNow, 4000); if (hasContent()) setStatus('Unsaved changes'); }
-function setStatus(t, err) { const s = $('savest'); s.textContent = t; s.classList.toggle('err', !!err); }
+function setStatus(t, err) {
+  statusText = t;
+  statusKind = err ? 'err' : /^Saving/.test(t) ? 'saving' : /Unsaved/.test(t) ? 'dirty' : /preview|Preview|Not saved/.test(t) ? 'off' : 'ok';
+  const d = $('sdot'); d.className = 'sdot' + (statusKind === 'ok' ? '' : ' ' + statusKind); $('fileBtn').title = 'File (' + t + ')';
+  const fs = document.querySelector('#fileMenu .fm-st span'); if (fs) fs.textContent = t;
+}
 function autoName() {
   const cnt = {}; S.pages.forEach((p) => p.objs.forEach((o) => { if (o.type === 'tpl' && TPLMAP[o.tpl]) cnt[TPLMAP[o.tpl].tab] = (cnt[TPLMAP[o.tpl].tab] || 0) + 1; }));
   const subj = Object.keys(cnt).sort((a, b) => cnt[b] - cnt[a])[0];
@@ -1694,32 +1716,76 @@ function pack() {
   return { app: 'adena-ink', v: 1, name: S.nb.name, subject: subjectOf(), savedAt: Date.now(),
     boards: S.pages.map((pg) => ({ name: pg.name, bg: pg.bg, srcName: pg.srcName || undefined, snap: pg.bg === 'snap' || pg.bg === 'pdf' ? pg.snap : undefined, objs: pg.objs })) };
 }
+// Resolves when everything is on Drive (or the save failed). Safe to call any time.
 async function saveNow() {
   clearTimeout(saveT);
+  while (savingP) await savingP;
   if (!dirty || !hasContent()) return;
-  if (saving) { again = true; return; }
   if (!hasGAS) { setStatus('Not saved (preview)'); return; }
   if (navigator.onLine === false) { setStatus('Offline: will save when back online', true); saveT = setTimeout(saveNow, 10000); return; }
   if (S.nb.auto || !S.nb.name) { S.nb.name = autoName(); showName(); }
-  saving = true; dirty = false; setStatus('Saving…');
-  try {
-    const r = await server('saveNotebook', S.nb.id || '', S.nb.name, JSON.stringify(pack()));
-    S.nb.id = r.id; setStatus('Saved to Drive');
-  } catch (e) { dirty = true; setStatus('Save failed, retrying', true); saveT = setTimeout(saveNow, 15000); }
-  saving = false;
-  if (again) { again = false; saveNow(); }
+  dirty = false; setStatus('Saving…');
+  savingP = server('saveNotebook', S.nb.id || '', S.nb.name, JSON.stringify(pack()))
+    .then((r) => { S.nb.id = r.id; setStatus(dirty ? 'Unsaved changes' : 'Saved to Drive ' + new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })); },
+      (e) => { dirty = true; setStatus('Save failed: ' + (e.message || 'error') + '. Retrying', true); saveT = setTimeout(saveNow, 15000); });
+  try { await savingP; } finally { savingP = null; }
 }
 window.addEventListener('online', () => { if (dirty) saveNow(); });
 window.addEventListener('beforeunload', (e) => { if (dirty && hasContent()) { saveNow(); e.preventDefault(); e.returnValue = ''; } });
-function showName() { $('nbname').textContent = S.nb.name || 'New notebook'; }
-$('nbname').onclick = () => {
-  const b = $('nbname'), inp = document.createElement('input'); inp.id = 'nbnameIn'; inp.value = S.nb.name || autoName(); inp.maxLength = 100;
-  b.replaceWith(inp); inp.select(); inp.focus();
-  const done = (ok) => { if (!inp.isConnected) return; const v = inp.value.trim(); inp.replaceWith(b); if (ok && v && v !== S.nb.name) { S.nb.name = v; S.nb.auto = false; showName(); dirty = true; if (S.nb.id && hasGAS) { server('renameNotebook', S.nb.id, v).then(() => setStatus('Renamed')).catch(() => {}); } saveNow(); } };
-  inp.onkeydown = (e) => { e.stopPropagation(); if (e.key === 'Enter') done(true); if (e.key === 'Escape') done(false); };
-  inp.onblur = () => done(true);
+function showName() { const n = document.querySelector('#fileMenu .fm-name'); if (n) n.textContent = S.nb.name || 'New notebook (not saved yet)'; document.title = (S.nb.name ? S.nb.name + ' - ' : '') + 'Adena Ink'; }
+
+// ---- File menu: save now, rename, add a PDF, picture, print, back to start
+let fileMenu = null;
+function closeFileMenu() { if (fileMenu) fileMenu.remove(); fileMenu = null; $('fileBtn').classList.remove('on'); }
+$('fileBtn').onclick = (e) => {
+  e.stopPropagation(); if (fileMenu) { closeFileMenu(); return; }
+  closePops(); if (editing) finishEdit();
+  fileMenu = document.createElement('div'); fileMenu.id = 'fileMenu'; fileMenu.className = 'navy';
+  const item = (a, icon, label, hint) => '<button class="fmi" data-f="' + a + '">' + ic(icon, 18) + '<span>' + label + '</span>' + (hint ? '<small>' + hint + '</small>' : '') + '</button>';
+  fileMenu.innerHTML = '<div class="fm-name"></div><div class="fm-st"><span class="sdot ' + (statusKind === 'ok' ? '' : statusKind) + '"></span><span>' + esc(statusText) + '</span></div>' +
+    item('save', 'save', 'Save now', 'Ctrl+S') + item('rename', 'text', 'Rename notebook') + '<div class="fsep"></div>' +
+    item('pdf', 'pdf', 'Add a PDF') + item('png', 'download', 'Save board as picture') + item('print', 'print', 'Print boards') + '<div class="fsep"></div>' +
+    item('home', 'home', 'Back to start page', 'saves first');
+  document.getElementById('board').appendChild(fileMenu); $('fileBtn').classList.add('on'); showName();
+  fileMenu.onclick = async (ev) => {
+    const b = ev.target.closest('[data-f]'); if (!b) return; const f = b.dataset.f; closeFileMenu();
+    if (f === 'save') forceSave();
+    else if (f === 'rename') renameNotebookUI();
+    else if (f === 'pdf') openPdfPicker();
+    else if (f === 'png') downloadPng();
+    else if (f === 'print') printBoards();
+    else if (f === 'home') goHome();
+  };
 };
-$('homeBtn').onclick = async () => { if (editing) finishEdit(); if (dirty && hasContent()) { setStatus('Saving…'); await saveNow(); } leaveBoard(); };
+document.addEventListener('pointerdown', (e) => { if (fileMenu && !e.target.closest('#fileMenu,#fileBtn')) closeFileMenu(); }, true);
+async function forceSave() {
+  if (!hasContent()) { toast('Nothing to save yet. Draw something first.'); return; }
+  if (!hasGAS) { toast('Preview mode: not connected to Drive'); return; }
+  dirty = true; await saveNow();
+  toast(dirty ? "Couldn't save yet. It will keep trying." : 'Saved "' + S.nb.name + '" to Drive');
+}
+async function goHome() {
+  if (editing) finishEdit();
+  if (dirty && hasContent() && hasGAS) {
+    await saveNow();
+    if (dirty && !(await ask("Couldn't save to Drive", 'Your latest changes are not saved yet. Leave anyway and lose them?', 'Leave without saving', true))) return;
+  }
+  leaveBoard();
+}
+function renameNotebookUI() {
+  const m = document.createElement('div'); m.id = 'modal';
+  m.innerHTML = '<div class="mb"><h3>Rename notebook</h3><input id="rn" class="search" maxlength="100"><div class="row"><button class="btn gr" data-a="0">Cancel</button><button class="btn" data-a="1">Save</button></div></div>';
+  document.body.appendChild(m); const inp = m.querySelector('#rn'); inp.value = S.nb.name || autoName(); inp.select(); inp.focus();
+  const done = (ok) => {
+    const v = inp.value.trim(); m.remove();
+    if (!ok || !v || v === S.nb.name) return;
+    S.nb.name = v; S.nb.auto = false; showName();
+    if (S.nb.id && hasGAS) server('renameNotebook', S.nb.id, v).then(() => toast('Renamed to "' + v + '"')).catch(() => {});
+    if (hasContent()) { dirty = true; saveNow(); }
+  };
+  m.onclick = (e) => { const b = e.target.closest('[data-a]'); if (b) done(b.dataset.a === '1'); else if (e.target === m) done(false); };
+  inp.onkeydown = (e) => { e.stopPropagation(); if (e.key === 'Enter') done(true); if (e.key === 'Escape') done(false); };
+}
 
 function resetBoard(pages, nb) {
   Object.keys(W).forEach(closeWidget); if (lensEl) toggleLens();
@@ -1728,9 +1794,9 @@ function resetBoard(pages, nb) {
 }
 function enterBoard() {
   $('landing').hidden = true; $('board').hidden = false; if (innerWidth < 760) $('rail').hidden = true; sizeCanvas(); setTool('pen'); updateBar(); showName(); renderRail();
-  setStatus(S.nb.id ? 'Saved to Drive' : (hasGAS ? 'Saves to Drive automatically' : 'Preview: not saving'));
+  setStatus(S.nb.id ? 'Saved to Drive' : (hasGAS ? 'Saves to Drive automatically once you draw' : 'Preview: not saving'));
 }
-function leaveBoard() { closePops(); Object.keys(W).forEach(closeWidget); if (lensEl) toggleLens(); $('board').hidden = true; $('landing').hidden = false; loadList(); }
+function leaveBoard() { closePops(); closeFileMenu(); Object.keys(W).forEach(closeWidget); if (lensEl) toggleLens(); $('board').hidden = true; $('landing').hidden = false; loadList(); }
 function newNotebook(bg) { resetBoard([mkPage(bg, 'Board 1')], { id: null, name: '', auto: true }); enterBoard(); }
 function loadNotebook(text, id, name) {
   let j; try { j = JSON.parse(text); } catch (e) { throw new Error('That file is not an Adena Ink notebook.'); }
@@ -1769,8 +1835,17 @@ function renderList() {
   if (!list.length) { box.innerHTML = '<div class="empty">Nothing matches "' + esc(q) + '"</div>'; return; }
   box.innerHTML = list.map((n) => '<div class="nbi" role="button" tabindex="0" data-id="' + n.id + '"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0b1f4d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h12a4 4 0 0 1 4 4v12H8a4 4 0 0 1-4-4z"/><path d="M8 8h8M8 12h6"/></svg><div class="nm"><b>' + esc(n.name) + '</b><small>' + when(n.modified) + '</small></div>' + (n.subject ? '<span class="chip">' + esc(n.subject) + '</span>' : '') + '<button class="del" data-del="' + n.id + '" title="Move to Drive trash">' + ic('trash', 18) + '</button></div>').join('');
 }
-$('q').addEventListener('input', renderList);
+let OT = 'nb', PDFS = null, pdfT;
+$('otabs').onclick = (e) => {
+  const b = e.target.closest('[data-ot]'); if (!b || b.dataset.ot === OT) return;
+  OT = b.dataset.ot; $('otabs').querySelectorAll('button').forEach((x) => x.classList.toggle('on', x === b));
+  $('q').value = ''; $('q').placeholder = OT === 'pdf' ? 'Search your Drive for a PDF' : 'Search your notebooks'; $('pdfhint').hidden = OT !== 'pdf';
+  if (OT === 'pdf') loadPdfs('', $('nblist')); else renderList();
+};
+$('q').addEventListener('input', () => { if (OT === 'nb') renderList(); else { clearTimeout(pdfT); pdfT = setTimeout(() => loadPdfs($('q').value, $('nblist')), 350); } });
+$('pdfUp').onclick = () => $('pdfIn').click();
 $('nblist').addEventListener('click', async (e) => {
+  const pr = e.target.closest('[data-pdf]'); if (pr) { openPdfFromDrive(pr.dataset.pdf, pr.dataset.name, true); return; }
   const del = e.target.closest('[data-del]');
   if (del) {
     e.stopPropagation(); const n = NBS.find((x) => x.id === del.dataset.del);
@@ -1794,11 +1869,121 @@ async function loadList() {
   catch (e) { $('nblist').innerHTML = '<div class="empty">Couldn\'t load your notebooks.<br><small>' + esc(e.message) + '</small></div>'; }
 }
 
+// ------------------------------------------------------------- PDFs: each page becomes a board (same as the extension)
+const PDFJS_SRC = [
+  'https://cdn.jsdelivr.net/npm/pdfjs-dist@6.2.108/',
+  'https://unpkg.com/pdfjs-dist@6.2.108/',
+  'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/',
+];
+const PDF_MAX_PAGES = 80, PDF_FIT = 1200;
+let pdfjsP = null, pdfBusy = false;
+function loadPdfJs() {
+  if (!pdfjsP) pdfjsP = (async () => {
+    let last;
+    for (const base of PDFJS_SRC) {
+      try {
+        const lib = await import(base + 'build/pdf.min.mjs');
+        // The reader's helper has to run from this page, so load it as a blob.
+        const wt = await (await fetch(base + 'build/pdf.worker.min.mjs')).text();
+        const w = new Worker(URL.createObjectURL(new Blob([wt], { type: 'text/javascript' })), { type: 'module' });
+        w.addEventListener('error', (ev) => console.warn('PDF reader worker error', ev.message || ev));
+        lib.GlobalWorkerOptions.workerPort = w;
+        return { lib, base };
+      } catch (e) { last = last || e; console.warn('PDF reader failed to load from ' + base, e); }
+    }
+    pdfjsP = null;
+    throw new Error("Couldn't load the PDF reader. If the web filter blocks cdn.jsdelivr.net, allow it. (" + (last && last.message || 'error') + ')');
+  })();
+  return pdfjsP;
+}
+function b64ToBytes(b64) { const bin = atob(b64), n = bin.length, a = new Uint8Array(n); for (let i = 0; i < n; i++) a[i] = bin.charCodeAt(i); return a; }
+async function pdfToPages(bytes, base) {
+  const { lib, base: src } = await loadPdfJs();
+  let doc;
+  try { doc = await lib.getDocument({ data: bytes, standardFontDataUrl: src + 'standard_fonts/', cMapUrl: src + 'cmaps/', cMapPacked: true }).promise; }
+  catch (e) { throw new Error(e && e.name === 'PasswordException' ? 'That PDF is password protected.' : 'That PDF could not be read.'); }
+  const total = doc.numPages, n = Math.min(total, PDF_MAX_PAGES), pages = [];
+  for (let i = 1; i <= n; i++) {
+    toast('Preparing page ' + i + ' of ' + n + (total > n ? ' (first ' + n + ' of ' + total + ')' : '') + '…', 60000);
+    try {
+      const page = await doc.getPage(i), v0 = page.getViewport({ scale: 1 });
+      const vp = page.getViewport({ scale: Math.min(PDF_FIT / v0.width, PDF_FIT / v0.height, 3) });
+      const cv = document.createElement('canvas'); cv.width = Math.round(vp.width); cv.height = Math.round(vp.height);
+      const g = cv.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, cv.width, cv.height);
+      await page.render({ canvasContext: g, canvas: cv, viewport: vp }).promise;
+      let url = cv.toDataURL('image/jpeg', 0.76);
+      if (url.length > 280000) url = cv.toDataURL('image/jpeg', 0.6);
+      if (url.length > 420000) { const s2 = document.createElement('canvas'); s2.width = Math.round(cv.width * 0.75); s2.height = Math.round(cv.height * 0.75); s2.getContext('2d').drawImage(cv, 0, 0, s2.width, s2.height); url = s2.toDataURL('image/jpeg', 0.6); }
+      const pg = mkPage('pdf', base + ' p' + i); pg.snap = url; pg.srcName = base; pages.push(pg);
+      page.cleanup();
+    } catch (e) { /* skip a page that will not draw */ }
+  }
+  try { doc.destroy(); } catch (e) { /* ignore */ }
+  return { pages, total };
+}
+async function importPdfBytes(bytes, name, toNew) {
+  if (pdfBusy) { toast('Still opening the last PDF…'); return; }
+  pdfBusy = true;
+  const base = String(name || 'PDF').replace(/\.pdf$/i, '').replace(/\s+/g, ' ').trim().slice(0, 60) || 'PDF';
+  try {
+    toast('Opening "' + base + '"…', 60000);
+    const { pages, total } = await pdfToPages(bytes, base);
+    if (!pages.length) throw new Error('No pages could be read from that PDF.');
+    if (toNew || $('board').hidden) { resetBoard(pages, { id: null, name: base, auto: false }); enterBoard(); }
+    else { const first = S.pages.length; S.pages.push(...pages); gotoPage(first); }
+    markDirty(); renderRail();
+    toast('Opened ' + pages.length + ' page' + (pages.length === 1 ? '' : 's') + ' from "' + base + '"' + (total > pages.length ? ' (the first ' + pages.length + ' of ' + total + ')' : '') + '. Draw on them like any board.', 5000);
+  } catch (e) { toast(e.message || "Couldn't open that PDF", 7000); }
+  pdfBusy = false;
+}
+async function openPdfFromDrive(id, name, toNew) {
+  if (pdfBusy) { toast('Still opening the last PDF…'); return; }
+  closePdfPicker();
+  toast('Downloading "' + (name || 'PDF') + '" from Drive…', 60000);
+  try { const r = await server('getPdf', id); await importPdfBytes(b64ToBytes(r.b64), r.name || name, toNew); }
+  catch (e) { toast(e.message || "Couldn't download that PDF", 7000); }
+}
+$('pdfIn').addEventListener('change', async () => {
+  const f = $('pdfIn').files[0]; $('pdfIn').value = ''; if (!f) return;
+  closePdfPicker();
+  if (f.size > 40 * 1024 * 1024) { toast('That PDF is larger than 40 MB. Try a smaller one.', 6000); return; }
+  await importPdfBytes(new Uint8Array(await f.arrayBuffer()), f.name, $('board').hidden);
+});
+function pdfRows(list) {
+  return list.map((f) => '<div class="nbi" role="button" tabindex="0" data-pdf="' + f.id + '" data-name="' + esc(f.name) + '"><span class="pdfico">PDF</span><div class="nm"><b>' + esc(f.name.replace(/\.pdf$/i, '')) + '</b><small>' + when(f.modified) + ' · ' + (f.size > 1048576 ? (f.size / 1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(f.size / 1024)) + ' KB') + '</small></div></div>').join('');
+}
+async function loadPdfs(q, box) {
+  if (!hasGAS) { box.innerHTML = '<div class="empty">Preview mode: Drive is not connected.</div>'; return; }
+  box.innerHTML = '<div class="spin"></div>';
+  try {
+    const list = await server('listPdfs', q || '');
+    if (q !== undefined && box.isConnected) box.innerHTML = list.length ? pdfRows(list) : '<div class="empty"><div class="big">📄</div>' + (q ? 'No PDFs match "' + esc(q) + '"' : 'No PDFs in your Drive yet.') + '<br>You can also upload one from this computer.</div>';
+  } catch (e) { box.innerHTML = '<div class="empty">Couldn\'t load your PDFs.<br><small>' + esc(e.message) + '</small></div>'; }
+}
+// Picker used from inside a notebook (File > Add a PDF, Boards > + PDF pages): pages are added to this notebook.
+let pdfPick = null;
+function closePdfPicker() { if (pdfPick) pdfPick.remove(); pdfPick = null; }
+function openPdfPicker() {
+  closePdfPicker();
+  const m = document.createElement('div'); m.id = 'modal'; pdfPick = m;
+  m.innerHTML = '<div class="mb wide"><h3>Add a PDF</h3><p>Each page is added as a new board in this notebook (up to 80 pages).</p><input class="search" id="pq" placeholder="Search your Drive for a PDF" autocomplete="off"><div class="nblist" id="plist"></div><div class="row" style="margin-top:12px;justify-content:space-between"><button class="linkbtn" data-up="1">Upload a PDF from this computer</button><button class="btn gr" data-a="0">Cancel</button></div></div>';
+  document.body.appendChild(m);
+  const box = m.querySelector('#plist'), q = m.querySelector('#pq'); let t;
+  loadPdfs('', box); q.focus();
+  q.oninput = () => { clearTimeout(t); t = setTimeout(() => loadPdfs(q.value, box), 350); };
+  q.onkeydown = (e) => e.stopPropagation();
+  m.onclick = (e) => {
+    if (e.target === m || e.target.closest('[data-a]')) { closePdfPicker(); return; }
+    if (e.target.closest('[data-up]')) { $('pdfIn').click(); return; }
+    const r = e.target.closest('[data-pdf]'); if (r) openPdfFromDrive(r.dataset.pdf, r.dataset.name, false);
+  };
+}
+
 // ------------------------------------------------------------- start
 window.addEventListener('resize', () => { if (!$('board').hidden) { sizeCanvas(); Object.values(W).forEach((w) => w.lay && w.lay()); renderRail(); } });
 renderBgPick(); loadList();
 if (hasGAS) server('boot').then((b) => { if (b.first) $('hello').textContent = 'Hi ' + b.first + '. Pick up where you left off, or start a new board.'; $('who').textContent = b.email || ''; }).catch(() => {});
-window.__ink = { S, newNotebook, loadNotebook, openMenu, toggleWidget, toggleLens, setTool };
+window.__ink = { S, newNotebook, loadNotebook, openMenu, toggleWidget, toggleLens, setTool, saveNow, isDirty: () => dirty };
 })();
 </script>
 </body>

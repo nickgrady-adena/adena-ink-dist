@@ -61,13 +61,41 @@ function saveNotebook(id, name, text) {
       var f = DriveApp.getFileById(id);
       if (!f.isTrashed()) {
         if (f.getName() !== fileName) f.setName(fileName);
-        f.setContent(text);
-        return { id: f.getId(), saved: Date.now() };
+        try {
+          f.setContent(text);
+          return { id: f.getId(), saved: Date.now() };
+        } catch (big) {
+          // Very large notebooks (lots of PDF pages) are written as a new file, then the old one is trashed.
+          var bf = folder_().createFile(Utilities.newBlob(text, 'application/json', fileName));
+          f.setTrashed(true);
+          return { id: bf.getId(), saved: Date.now() };
+        }
       }
     } catch (e) { /* deleted in Drive: make a new one below */ }
   }
-  var nf = folder_().createFile(fileName, text, 'application/json');
+  var nf = folder_().createFile(Utilities.newBlob(text, 'application/json', fileName));
   return { id: nf.getId(), saved: Date.now() };
+}
+
+/** PDFs the person can open (their own or shared with them), newest first. */
+function listPdfs(q) {
+  var query = "mimeType = 'application/pdf' and trashed = false";
+  q = String(q || '').trim();
+  if (q) query += " and title contains '" + q.replace(/\\/g, '\\\\').replace(/'/g, "\\'") + "'";
+  var it = DriveApp.searchFiles(query), out = [];
+  while (it.hasNext() && out.length < 200) {
+    var f = it.next();
+    out.push({ id: f.getId(), name: f.getName(), modified: f.getLastUpdated().getTime(), size: f.getSize() });
+  }
+  out.sort(function (a, b) { return b.modified - a.modified; });
+  return out.slice(0, 80);
+}
+
+/** A PDF's bytes as base64 (the page draws each PDF page as a board). */
+function getPdf(id) {
+  var f = DriveApp.getFileById(id);
+  if (f.getSize() > 40 * 1024 * 1024) throw new Error('That PDF is larger than 40 MB. Try a smaller one.');
+  return { name: f.getName(), b64: Utilities.base64Encode(f.getBlob().getBytes()) };
 }
 
 function renameNotebook(id, name) {
