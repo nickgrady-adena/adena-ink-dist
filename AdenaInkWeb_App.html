@@ -2070,9 +2070,10 @@ function loadPdfJs() {
     let last;
     for (const base of PDFJS_SRC) {
       try {
-        const lib = await import(base + 'build/pdf.min.mjs');
+        const lib = await import(base + 'legacy/build/pdf.min.mjs');
+        // The "legacy" build works on Chromebooks and browsers that are not on the very newest Chrome.
         // The reader's helper has to run from this page, so load it as a blob.
-        const wt = await (await fetch(base + 'build/pdf.worker.min.mjs')).text();
+        const wt = await (await fetch(base + 'legacy/build/pdf.worker.min.mjs')).text();
         const w = new Worker(URL.createObjectURL(new Blob([wt], { type: 'text/javascript' })), { type: 'module' });
         w.addEventListener('error', (ev) => console.warn('PDF reader worker error', ev.message || ev));
         lib.GlobalWorkerOptions.workerPort = w;
@@ -2109,12 +2110,14 @@ async function pdfToPages(bytes, base) {
       const vp = page.getViewport({ scale: Math.min(PDF_FIT / v0.width, PDF_FIT / v0.height, 3) });
       const cv = document.createElement('canvas'); cv.width = Math.round(vp.width); cv.height = Math.round(vp.height);
       const g = cv.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, cv.width, cv.height);
-      try { await page.render({ canvasContext: g, canvas: cv, viewport: vp }).promise; }
+      // A page that never finishes drawing should not freeze the import: give each page 45 seconds.
+      const timed = (task) => Promise.race([task.promise, new Promise((_, rej) => setTimeout(() => { try { task.cancel(); } catch (e) { /* ignore */ } rej(new Error('page took too long to draw')); }, 45000))]);
+      try { await timed(page.render({ canvasContext: g, canvas: cv, viewport: vp })); }
       catch (e) {
         // Very big pages can be too much for a Chromebook: try once more at half size.
         console.warn('PDF page ' + i + ' failed, retrying smaller', e);
         cv.width = Math.round(vp.width / 2); cv.height = Math.round(vp.height / 2); g.fillStyle = '#fff'; g.fillRect(0, 0, cv.width, cv.height);
-        await page.render({ canvasContext: g, canvas: cv, viewport: page.getViewport({ scale: vp.scale / 2 }) }).promise;
+        await timed(page.render({ canvasContext: g, canvas: cv, viewport: page.getViewport({ scale: vp.scale / 2 }) }));
       }
       let url = cv.toDataURL('image/jpeg', 0.76);
       if (url.length > 280000) url = cv.toDataURL('image/jpeg', 0.6);
