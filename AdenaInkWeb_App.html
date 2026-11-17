@@ -2088,7 +2088,7 @@ function b64ToBytes(b64) { const bin = atob(b64), n = bin.length, a = new Uint8A
 async function pdfToPages(bytes, base) {
   const { lib, base: src } = await loadPdfJs();
   let doc;
-  try { doc = await lib.getDocument({ data: bytes, standardFontDataUrl: src + 'standard_fonts/', cMapUrl: src + 'cmaps/', cMapPacked: true }).promise; }
+  try { doc = await lib.getDocument({ data: bytes, standardFontDataUrl: src + 'standard_fonts/', cMapUrl: src + 'cmaps/', cMapPacked: true, wasmUrl: src + 'wasm/', iccUrl: src + 'iccs/' }).promise; }
   catch (e) { throw new Error(e && e.name === 'PasswordException' ? 'That PDF is password protected.' : 'That PDF could not be read.'); }
   const total = doc.numPages;
   let nums = Array.from({ length: Math.min(total, PDF_MAX_PAGES) }, (_, i) => i + 1);
@@ -2098,7 +2098,7 @@ async function pdfToPages(bytes, base) {
     if (!pick) { try { doc.destroy(); } catch (e) { /* ignore */ } return { pages: [], total, cancelled: true }; }
     nums = pick;
   }
-  const n = nums.length, pages = [];
+  const n = nums.length, pages = []; let firstErr = null;
   busyOpen('Opening "' + base + '"', n, true);
   for (let j = 0; j < n; j++) {
     if (busyCancel) break;
@@ -2109,17 +2109,23 @@ async function pdfToPages(bytes, base) {
       const vp = page.getViewport({ scale: Math.min(PDF_FIT / v0.width, PDF_FIT / v0.height, 3) });
       const cv = document.createElement('canvas'); cv.width = Math.round(vp.width); cv.height = Math.round(vp.height);
       const g = cv.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, cv.width, cv.height);
-      await page.render({ canvasContext: g, canvas: cv, viewport: vp }).promise;
+      try { await page.render({ canvasContext: g, canvas: cv, viewport: vp }).promise; }
+      catch (e) {
+        // Very big pages can be too much for a Chromebook: try once more at half size.
+        console.warn('PDF page ' + i + ' failed, retrying smaller', e);
+        cv.width = Math.round(vp.width / 2); cv.height = Math.round(vp.height / 2); g.fillStyle = '#fff'; g.fillRect(0, 0, cv.width, cv.height);
+        await page.render({ canvasContext: g, canvas: cv, viewport: page.getViewport({ scale: vp.scale / 2 }) }).promise;
+      }
       let url = cv.toDataURL('image/jpeg', 0.76);
       if (url.length > 280000) url = cv.toDataURL('image/jpeg', 0.6);
       if (url.length > 420000) { const s2 = document.createElement('canvas'); s2.width = Math.round(cv.width * 0.75); s2.height = Math.round(cv.height * 0.75); s2.getContext('2d').drawImage(cv, 0, 0, s2.width, s2.height); url = s2.toDataURL('image/jpeg', 0.6); }
       const pg = mkPage('pdf', base + ' p' + i); pg.snap = url; pg.srcName = base; pages.push(pg);
       page.cleanup();
-    } catch (e) { /* skip a page that will not draw */ }
+    } catch (e) { console.warn('PDF page ' + i + ' could not be drawn', e); firstErr = firstErr || e; }
   }
   busyStep(n, 'Done');
   try { doc.destroy(); } catch (e) { /* ignore */ }
-  return { pages, total };
+  return { pages, total, firstErr };
 }
 async function importPdfBytes(bytes, name, toNew) {
   if (pdfBusy) { toast('Still opening the last PDF…'); return; }
@@ -2127,10 +2133,10 @@ async function importPdfBytes(bytes, name, toNew) {
   const base = String(name || 'PDF').replace(/\.pdf$/i, '').replace(/\s+/g, ' ').trim().slice(0, 60) || 'PDF';
   try {
     busyOpen('Opening "' + base + '"', 1); busyStep(0, 'Reading the PDF…');
-    const { pages, total, cancelled } = await pdfToPages(bytes, base);
+    const { pages, total, cancelled, firstErr } = await pdfToPages(bytes, base);
     busyClose(); $('toast').classList.remove('show');
     if (cancelled) { pdfBusy = false; return; }
-    if (!pages.length) throw new Error(busyCancel ? 'Stopped. No pages were added.' : 'No pages could be read from that PDF.');
+    if (!pages.length) throw new Error(busyCancel ? 'Stopped. No pages were added.' : 'No pages could be read from that PDF' + (firstErr ? ' (' + String(firstErr.message || firstErr).slice(0, 120) + ')' : '') + '.');
     if (toNew || $('board').hidden) { resetBoard(pages, { id: null, name: base, auto: false }); enterBoard(); }
     else { const first = S.pages.length; S.pages.push(...pages); gotoPage(first); }
     markDirty(); renderRail();
