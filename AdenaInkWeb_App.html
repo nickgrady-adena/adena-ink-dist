@@ -59,6 +59,31 @@ svg{display:block;pointer-events:none}
 #overlay>*{pointer-events:auto}
 .navy{background:var(--navy);color:#eaf3fc;border:2px solid var(--sky);box-shadow:0 6px 24px rgba(0,0,0,.35)}
 #bar{position:fixed;left:0;right:0;margin:0 auto;width:max-content;bottom:14px;z-index:30;display:flex;align-items:center;gap:2px;flex-wrap:wrap;justify-content:center;max-width:calc(100vw - 16px);padding:6px 8px;border-radius:16px}
+#qc{position:absolute;bottom:calc(100% + 8px);display:flex;gap:7px;padding:6px 9px;background:#0b1f4d;border:2px solid #9bcbeb;border-radius:999px;box-shadow:0 4px 14px rgba(0,0,0,.4)}
+#em{position:absolute;bottom:calc(100% + 8px);display:flex;gap:2px;padding:3px;background:#0b1f4d;border:2px solid #9bcbeb;border-radius:999px;box-shadow:0 4px 14px rgba(0,0,0,.4)}
+#em button{padding:5px 12px;border-radius:999px;font-size:12px;font-weight:600;color:#cfe3f7}
+#em button.on{background:#9bcbeb;color:#0b1f4d}
+#qc button{width:20px;height:20px;border-radius:50%;border:2px solid rgba(255,255,255,.35);padding:0}
+#qc button.on{border-color:#fff;box-shadow:0 0 0 2px #9bcbeb}
+#qc[hidden],#em[hidden]{display:none}
+.cust{display:flex;align-items:center;gap:10px;font-weight:600;font-size:12px;margin-top:10px}
+.cust input{width:44px;height:30px;border:0;padding:0;background:none;cursor:pointer}
+#fsBtn{position:fixed;right:12px;top:12px;z-index:30;width:42px;height:42px;border-radius:12px;display:grid;place-items:center}
+#fsBtn[hidden]{display:none}
+#busy{position:fixed;inset:0;z-index:130;background:rgba(5,15,40,.45);display:grid;place-items:center}
+#busy .bx{background:#fff;border-radius:16px;padding:20px 22px;width:min(380px,90vw);box-shadow:0 20px 50px rgba(0,0,0,.35);color:var(--navy)}
+#busy b{display:block;font-size:15px;margin-bottom:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#busy small{color:#5b6b86}
+#busy .pb{height:10px;border-radius:99px;background:#e6edf7;margin:12px 0 6px;overflow:hidden}
+#busy .pb i{display:block;height:100%;width:0;background:#2f80ff;border-radius:99px;transition:width .2s}
+.kbd{display:grid;grid-template-columns:auto 1fr;gap:7px 14px;font-size:13px;margin:10px 0 4px;align-items:center}
+.kbd kbd{font:700 12px system-ui;background:#eef3fa;border:1px solid #c9d6e8;border-bottom-width:2px;border-radius:6px;padding:2px 7px;justify-self:start;white-space:nowrap}
+.pgpick{display:flex;flex-direction:column;gap:10px;margin:12px 0}
+.pgpick label{display:flex;gap:8px;align-items:center;font-weight:600}
+.pgpick input[type=text]{flex:1;padding:8px 10px;border:1px solid #c9d6e8;border-radius:9px;font:inherit}
+#busy .row{display:flex;justify-content:flex-end}
+#busy .btn.gr,#modal .btn.gr{background:#eef2f7;color:var(--ink);border-color:#eef2f7}
+.chip.sh{background:#e7f1ff;color:#1d4ed8}
 .ib{width:38px;height:38px;display:inline-grid;place-items:center;border-radius:10px;position:relative}
 .ib:hover{background:rgba(255,255,255,.13)}
 .ib.on{background:var(--sky);color:var(--navy)}
@@ -226,9 +251,13 @@ input[type=range]{accent-color:var(--sky);width:170px}
     <button id="fileBtn" title="File: save, rename, add a PDF, back to start"><img src="data:image/png;base64,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" alt=""><span>File</span><span class="sdot" id="sdot"></span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg></button>
   </div>
 
+  <button id="fsBtn" class="navy" title="Full screen" hidden><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3M21 8V5a2 2 0 0 0-2-2h-3M3 16v3a2 2 0 0 0 2 2h3M16 21h3a2 2 0 0 0 2-2v-3"/></svg></button>
+
   <div id="rail" class="navy" hidden></div>
 
   <div id="bar" class="navy">
+    <div id="qc" hidden></div>
+    <div id="em" hidden><button data-em="whole" title="Delete the whole drawing you touch">Whole</button><button data-em="partial" title="Trim: cut just a small piece out of what you touch">Trim</button></div>
     <button class="ib" data-tool="pen" title="Pen (P)"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button>
     <button class="ib" data-tool="highlighter" title="Highlighter (H)"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 11-6 6v3h9l3-3"/><path d="m22 12-4.6 4.6a2 2 0 0 1-2.8 0l-5.2-5.2a2 2 0 0 1 0-2.8L14 4"/></svg></button>
     <button class="ib" data-tool="eraser" title="Eraser (E)"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7 21-4.3-4.3c-1-1-1-2.5 0-3.4l9.6-9.6c1-1 2.5-1 3.4 0l5.6 5.6c1 1 1 2.5 0 3.4L13 21"/><path d="M22 21H7"/><path d="m5 11 9 9"/></svg></button>
@@ -1257,7 +1286,6 @@ const bar = $('bar');
 bar.querySelectorAll('[data-tool]').forEach((b) => b.addEventListener('click', () => {
   const t = b.dataset.tool;
   if (t === 'shape') { setTool('shape'); togglePop('shapes', b); return; }
-  if (t === 'eraser') { const open = popKind === 'erase'; setTool('eraser'); if (!open) openPop('erase', b); return; }
   setTool(t);
 }));
 function setTool(t) {
@@ -1268,6 +1296,11 @@ function setTool(t) {
   closePops(); updateBar(); redraw();
 }
 $('clrBtn').onclick = (e) => togglePop('color', e.currentTarget);
+// Quick colours above the pen and Whole / Trim above the eraser, same as the extension.
+const QC = ['#ffd60a', '#e5484d', '#1c1c1c', '#0091ff', '#30a46c'];
+$('qc').innerHTML = QC.map((c) => '<button data-qc="' + c + '" style="background:' + c + '" title="Pen colour"></button>').join('');
+$('qc').onclick = (e) => { const b = e.target.closest('[data-qc]'); if (!b) return; e.stopPropagation(); S.color = b.dataset.qc; updateBar(); };
+$('em').onclick = (e) => { const b = e.target.closest('[data-em]'); if (!b) return; e.stopPropagation(); S.eraseMode = b.dataset.em; updateBar(); };
 $('szBtn').onclick = (e) => togglePop('size', e.currentTarget);
 $('undoBtn').onclick = undo; $('redoBtn').onclick = redo;
 $('clearBtn').onclick = async () => { const pg = P(); if (!pg.objs.length) return; if (await ask('Clear this board?', 'Everything drawn on "' + pg.name + '" will be removed. You can undo this.', 'Clear', true)) { const before = pg.objs; pg.objs = []; S.selId = null; commit(before); } };
@@ -1283,6 +1316,13 @@ function updateBar() {
   $('prevBtn').disabled = S.pi === 0; $('nextBtn').disabled = S.pi >= S.pages.length - 1;
   $('pgnum').textContent = (S.pi + 1) + '/' + S.pages.length;
   $('shapeBtn').innerHTML = S.tool === 'shape' ? ic2(SHAPE_SVG[S.shape]) : ic('shapes');
+  const pill = (el, show, btn, key, val) => {
+    el.hidden = !show; if (!show) return;
+    el.querySelectorAll('button').forEach((b) => b.classList.toggle('on', b.dataset[key] === val));
+    el.style.left = Math.max(0, btn.offsetLeft + btn.offsetWidth / 2 - el.offsetWidth / 2) + 'px';
+  };
+  pill($('qc'), S.tool === 'pen', bar.querySelector('[data-tool=pen]'), 'qc', String(S.color).toLowerCase());
+  pill($('em'), S.tool === 'eraser', bar.querySelector('[data-tool=eraser]'), 'em', S.eraseMode);
 }
 const ic2 = (inner) => '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + inner + '</svg>';
 
@@ -1296,7 +1336,8 @@ function openPop(kind, anchor) {
   const el = document.createElement('div'); el.className = 'pop navy';
   if (kind === 'color') {
     const target = S.tool === 'highlighter' ? 'hcolor' : 'color';
-    el.innerHTML = '<div class="pal">' + PALETTE.map((c) => '<button data-c="' + c + '" class="' + (S[target] === c ? 'on' : '') + '" style="background:' + c + '" title="' + c + '"></button>').join('') + '</div>';
+    el.innerHTML = '<div class="pal">' + PALETTE.map((c) => '<button data-c="' + c + '" class="' + (S[target] === c ? 'on' : '') + '" style="background:' + c + '" title="' + c + '"></button>').join('') + '</div><label class="cust">Custom <input type="color" id="pcustom" value="' + (/^#[0-9a-f]{6}$/i.test(S[target]) ? S[target] : '#e5484d') + '"></label>';
+    el.querySelector('#pcustom').oninput = (e) => { S[target] = e.target.value; updateBar(); };
     el.onclick = (e) => { const b = e.target.closest('[data-c]'); if (!b) return; S[target] = b.dataset.c; if (S.tool !== 'highlighter' && S.tool !== 'pen' && S.tool !== 'fading' && S.tool !== 'shape' && S.tool !== 'text' && S.tool !== 'tpl') setTool('pen'); updateBar(); closePops(); };
   } else if (kind === 'size') {
     el.innerHTML = '<div class="poprow"><input type="range" min="1" max="24" value="' + S.size + '" id="szr"><b id="szv" style="min-width:26px;text-align:right">' + S.size + '</b></div>';
@@ -1687,6 +1728,7 @@ document.addEventListener('keydown', (e) => {
   if (mod && k === 'y') { e.preventDefault(); redo(); return; }
   if (mod && k === 's') { e.preventDefault(); saveNow(); return; }
   if (mod) return;
+  if (e.key === '?') { e.preventDefault(); showKeys(); return; }
   if ((k === 'delete' || k === 'backspace') && S.selId != null) { e.preventDefault(); deleteSel(); return; }
   if (k === 'escape') { closePops(); if (S.tool !== 'pen') setTool('pen'); return; }
   const map = { p: 'pen', h: 'highlighter', e: 'eraser', v: 'select', t: 'text', l: 'laser', f: 'fading' };
@@ -1712,9 +1754,22 @@ function autoName() {
   return (subj ? subj + ' board' : 'Whiteboard') + ' ' + d;
 }
 function subjectOf() { const cnt = {}; S.pages.forEach((p) => p.objs.forEach((o) => { if (o.type === 'tpl' && TPLMAP[o.tpl]) cnt[TPLMAP[o.tpl].tab] = (cnt[TPLMAP[o.tpl].tab] || 0) + 1; })); return Object.keys(cnt).sort((a, b) => cnt[b] - cnt[a])[0] || 'General'; }
-function pack() {
-  return { app: 'adena-ink', v: 1, name: S.nb.name, subject: subjectOf(), savedAt: Date.now(),
-    boards: S.pages.map((pg) => ({ name: pg.name, bg: pg.bg, srcName: pg.srcName || undefined, snap: pg.bg === 'snap' || pg.bg === 'pdf' ? pg.snap : undefined, objs: pg.objs })) };
+// Pictures already in the saved file (PDF pages, camera snaps) are sent as {snapRef: n} instead of again,
+// so a 30-page PDF notebook only uploads the ink. savedSnaps: picture -> its board number in the saved file.
+let savedSnaps = new Map(), savedRev = null;
+function pack(useRefs) {
+  const rev = Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
+  const boards = S.pages.map((pg) => {
+    const b = { name: pg.name, bg: pg.bg, srcName: pg.srcName || undefined, objs: pg.objs };
+    const snap = pg.bg === 'snap' || pg.bg === 'pdf' ? pg.snap : undefined;
+    if (snap) { if (useRefs && savedSnaps.has(snap)) b.snapRef = savedSnaps.get(snap); else b.snap = snap; }
+    return b;
+  });
+  return { app: 'adena-ink', v: 1, rev, name: S.nb.name, subject: subjectOf(), savedAt: Date.now(), boards };
+}
+function rememberSnaps(boards, rev) {
+  savedSnaps = new Map(); savedRev = rev || null;
+  if (rev) boards.forEach((b, i) => { if (b.snap && !savedSnaps.has(b.snap)) savedSnaps.set(b.snap, i); });
 }
 // Resolves when everything is on Drive (or the save failed). Safe to call any time.
 async function saveNow() {
@@ -1725,9 +1780,22 @@ async function saveNow() {
   if (navigator.onLine === false) { setStatus('Offline: will save when back online', true); saveT = setTimeout(saveNow, 10000); return; }
   if (S.nb.auto || !S.nb.name) { S.nb.name = autoName(); showName(); }
   dirty = false; setStatus('Saving…');
-  savingP = server('saveNotebook', S.nb.id || '', S.nb.name, JSON.stringify(pack()))
-    .then((r) => { S.nb.id = r.id; setStatus(dirty ? 'Unsaved changes' : 'Saved to Drive ' + new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })); },
-      (e) => { dirty = true; setStatus('Save failed: ' + (e.message || 'error') + '. Retrying', true); saveT = setTimeout(saveNow, 15000); });
+  const send = async () => {
+    const useRefs = !!(S.nb.id && savedRev && savedSnaps.size), nb = pack(useRefs);
+    try { return { r: await server('saveNotebook', S.nb.id || '', S.nb.name, JSON.stringify(nb), useRefs ? savedRev : ''), nb }; }
+    catch (e) {
+      if (!/NEEDFULL/.test(e.message || '')) throw e;
+      savedSnaps = new Map(); savedRev = null; // the file changed elsewhere: send everything once
+      const full = pack(false);
+      return { r: await server('saveNotebook', S.nb.id || '', S.nb.name, JSON.stringify(full), ''), nb: full };
+    }
+  };
+  savingP = send().then(({ r, nb }) => {
+    if (r.copied) toast('That notebook is view-only, so your changes were saved as your own copy in Drive.', 6000);
+    S.nb.id = r.id;
+    rememberSnaps(S.pages.map((pg) => ({ snap: pg.bg === 'snap' || pg.bg === 'pdf' ? pg.snap : undefined })), nb.rev);
+    setStatus(dirty ? 'Unsaved changes' : 'Saved to Drive ' + new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }));
+  }, (e) => { dirty = true; setStatus('Save failed: ' + (e.message || 'error') + '. Retrying', true); saveT = setTimeout(saveNow, 15000); });
   try { await savingP; } finally { savingP = null; }
 }
 window.addEventListener('online', () => { if (dirty) saveNow(); });
@@ -1744,7 +1812,8 @@ $('fileBtn').onclick = (e) => {
   const item = (a, icon, label, hint) => '<button class="fmi" data-f="' + a + '">' + ic(icon, 18) + '<span>' + label + '</span>' + (hint ? '<small>' + hint + '</small>' : '') + '</button>';
   fileMenu.innerHTML = '<div class="fm-name"></div><div class="fm-st"><span class="sdot ' + (statusKind === 'ok' ? '' : statusKind) + '"></span><span>' + esc(statusText) + '</span></div>' +
     item('save', 'save', 'Save now', 'Ctrl+S') + item('rename', 'text', 'Rename notebook') + '<div class="fsep"></div>' +
-    item('pdf', 'pdf', 'Add a PDF') + item('png', 'download', 'Save board as picture') + item('print', 'print', 'Print boards') + '<div class="fsep"></div>' +
+    item('pdf', 'pdf', 'Add a PDF') + item('drivepdf', 'save', 'Save as PDF to Drive', 'with your ink') + item('png', 'download', 'Save board as picture') + item('print', 'print', 'Print boards') + '<div class="fsep"></div>' +
+    item('keys', 'grid', 'Keyboard shortcuts', '?') + '<div class="fsep"></div>' +
     item('home', 'home', 'Back to start page', 'saves first');
   document.getElementById('board').appendChild(fileMenu); $('fileBtn').classList.add('on'); showName();
   fileMenu.onclick = async (ev) => {
@@ -1753,11 +1822,96 @@ $('fileBtn').onclick = (e) => {
     else if (f === 'rename') renameNotebookUI();
     else if (f === 'pdf') openPdfPicker();
     else if (f === 'png') downloadPng();
+    else if (f === 'drivepdf') savePdfToDrive();
+    else if (f === 'keys') showKeys();
     else if (f === 'print') printBoards();
     else if (f === 'home') goHome();
   };
 };
 document.addEventListener('pointerdown', (e) => { if (fileMenu && !e.target.closest('#fileMenu,#fileBtn')) closeFileMenu(); }, true);
+// ---- Save as PDF to Drive: every board with its ink, one page each (same PDF maker as the extension)
+function buildPdfMulti(pgs) {
+  const enc = new TextEncoder(), parts = [], offs = [], n = pgs.length; let len = 0;
+  const push = (x) => { const u = typeof x === 'string' ? enc.encode(x) : x; parts.push(u); len += u.length; };
+  const obj = (id, fn) => { offs[id] = len; push(id + ' 0 obj\n'); fn(); push('endobj\n'); };
+  push('%PDF-1.4\n');
+  obj(1, () => push('<</Type/Catalog/Pages 2 0 R>>\n'));
+  obj(2, () => push('<</Type/Pages/Kids[' + pgs.map((_, i) => (3 + 3 * i) + ' 0 R').join(' ') + ']/Count ' + n + '>>\n'));
+  pgs.forEach((pg, i) => {
+    const pw = Math.round(pg.w * 0.75 * 100) / 100, ph = Math.round(pg.h * 0.75 * 100) / 100, a = 3 + 3 * i;
+    obj(a, () => push('<</Type/Page/Parent 2 0 R/MediaBox[0 0 ' + pw + ' ' + ph + ']/Resources<</XObject<</Im0 ' + (a + 1) + ' 0 R>>>>/Contents ' + (a + 2) + ' 0 R>>\n'));
+    obj(a + 1, () => { push('<</Type/XObject/Subtype/Image/Width ' + pg.w + '/Height ' + pg.h + '/ColorSpace/DeviceRGB/BitsPerComponent 8/Filter/DCTDecode/Length ' + pg.jpeg.length + '>>\nstream\n'); push(pg.jpeg); push('\nendstream\n'); });
+    const content = 'q ' + pw + ' 0 0 ' + ph + ' 0 0 cm /Im0 Do Q';
+    obj(a + 2, () => push('<</Length ' + content.length + '>>\nstream\n' + content + '\nendstream\n'));
+  });
+  const total = 3 + 3 * n, xref = len;
+  push('xref\n0 ' + total + '\n0000000000 65535 f \n');
+  for (let i = 1; i < total; i++) push(String(offs[i]).padStart(10, '0') + ' 00000 n \n');
+  push('trailer\n<</Size ' + total + '/Root 1 0 R>>\nstartxref\n' + xref + '\n%%EOF');
+  return new Blob(parts, { type: 'application/pdf' });
+}
+function bytesToB64(bytes) { let bin = ''; for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000)); return btoa(bin); }
+async function savePdfToDrive() {
+  if (!hasGAS) { toast('Preview mode: not connected to Drive'); return; }
+  const n = S.pages.length, name = S.nb.name || autoName();
+  busyOpen('Making "' + name + '.pdf"', n);
+  try {
+    const pgs = [];
+    for (let i = 0; i < n; i++) {
+      busyStep(i, 'Page ' + (i + 1) + ' of ' + n);
+      const k = Math.min(2, 1800 / Math.max(VW, VH)), c = boardCanvas(S.pages[i], k);
+      const g = c.getContext('2d'); g.globalCompositeOperation = 'destination-over'; g.fillStyle = '#fff'; g.fillRect(0, 0, c.width, c.height);
+      const blob = await new Promise((res) => c.toBlob(res, 'image/jpeg', 0.88));
+      pgs.push({ jpeg: new Uint8Array(await blob.arrayBuffer()), w: c.width, h: c.height });
+      await new Promise((r) => setTimeout(r, 0));
+    }
+    busyStep(n, 'Uploading to your Drive…');
+    const pdf = new Uint8Array(await buildPdfMulti(pgs).arrayBuffer());
+    const r = await server('savePdfCopy', name, bytesToB64(pdf));
+    busyClose();
+    if (await ask('Saved to Drive', '"' + r.name + '" is in your Adena Ink folder. You can attach it to a Google Classroom post.', 'Open it')) window.open(r.url, '_blank');
+  } catch (e) { busyClose(); toast("Couldn't save the PDF: " + (e.message || 'error'), 6000); }
+}
+
+// ---- progress box for long jobs (PDFs in and out)
+let busyN = 1, busyCancel = false;
+function busyOpen(title, n, cancellable) {
+  busyClose(); busyN = Math.max(1, n || 1); busyCancel = false;
+  const m = document.createElement('div'); m.id = 'busy';
+  m.innerHTML = '<div class="bx"><b></b><small>Starting…</small><div class="pb"><i></i></div>' + (cancellable ? '<div class="row" style="margin-top:10px"><button class="btn gr" data-x="1">Stop</button></div>' : '') + '</div>';
+  m.querySelector('b').textContent = title; document.body.appendChild(m);
+  const x = m.querySelector('[data-x]'); if (x) x.onclick = () => { busyCancel = true; x.textContent = 'Stopping…'; x.disabled = true; };
+}
+function busyStep(i, text) { const m = $('busy'); if (!m) return; m.querySelector('small').textContent = text; m.querySelector('.pb i').style.width = Math.round(100 * Math.min(1, i / busyN)) + '%'; }
+function busyClose() { const m = $('busy'); if (m) m.remove(); }
+
+// ---- keyboard shortcuts help (press ?)
+function showKeys() {
+  if ($('modal')) return; closeFileMenu();
+  const K = [['P', 'Pen'], ['H', 'Highlighter'], ['E', 'Eraser'], ['V', 'Select: move, resize, delete'], ['T', 'Text'], ['L', 'Laser pointer'], ['F', 'Fading pen'],
+    ['Delete', 'Delete what is selected'], ['Ctrl + Z', 'Undo'], ['Ctrl + Y', 'Redo'], ['Ctrl + S', 'Save now'], ['← →', 'Previous / next board'], ['Ctrl + V', 'Paste a picture'], ['Shift + drag', 'Perfect square or circle'], ['Esc', 'Close menus, back to the pen'], ['?', 'This list']];
+  const m = document.createElement('div'); m.id = 'modal';
+  m.innerHTML = '<div class="mb"><h3>Keyboard shortcuts</h3><div class="kbd">' + K.map(([k, t]) => '<kbd>' + esc(k) + '</kbd><span>' + esc(t) + '</span>').join('') + '</div><div class="row"><button class="btn" data-a="1">Done</button></div></div>';
+  document.body.appendChild(m);
+  const close = () => { m.remove(); document.removeEventListener('keydown', kd, true); };
+  const kd = (e) => { if (e.key === 'Escape' || e.key === '?' || e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); close(); } };
+  document.addEventListener('keydown', kd, true);
+  m.onclick = (e) => { if (e.target === m || e.target.closest('[data-a]')) close(); };
+}
+
+// ---- full screen for projectors and panels
+(() => {
+  const b = $('fsBtn'), el = document.documentElement;
+  if (!(document.fullscreenEnabled && el.requestFullscreen)) return; // the page is not allowed to go full screen here
+  b.hidden = false;
+  const sync = () => { const on = !!document.fullscreenElement; b.title = on ? 'Exit full screen' : 'Full screen'; b.classList.toggle('on', on); };
+  b.onclick = () => { (document.fullscreenElement ? document.exitFullscreen() : el.requestFullscreen()).catch(() => toast('Press F11 for full screen')); };
+  document.addEventListener('fullscreenchange', sync);
+})();
+
+// ---- small screens: the board list starts closed and closes if the window gets narrow
+addEventListener('resize', () => { if (innerWidth < 760 && !$('rail').hidden && !$('board').hidden) { $('rail').hidden = true; bar.querySelectorAll('[data-rail]').forEach((x) => x.classList.remove('on')); } });
+
 async function forceSave() {
   if (!hasContent()) { toast('Nothing to save yet. Draw something first.'); return; }
   if (!hasGAS) { toast('Preview mode: not connected to Drive'); return; }
@@ -1789,14 +1943,16 @@ function renameNotebookUI() {
 
 function resetBoard(pages, nb) {
   Object.keys(W).forEach(closeWidget); if (lensEl) toggleLens();
-  S.pages = pages; S.pi = 0; S.selId = null; S.nb = nb; dirty = false; clearTimeout(saveT);
+  S.pages = pages; S.pi = 0; S.selId = null; S.nb = nb; dirty = false; clearTimeout(saveT); savedSnaps = new Map(); savedRev = null;
   S.pages.forEach((p) => p.objs.forEach((o) => { uid = Math.max(uid, (o.id || 0) + 1); }));
 }
 function enterBoard() {
   $('landing').hidden = true; $('board').hidden = false; if (innerWidth < 760) $('rail').hidden = true; sizeCanvas(); setTool('pen'); updateBar(); showName(); renderRail();
   setStatus(S.nb.id ? 'Saved to Drive' : (hasGAS ? 'Saves to Drive automatically once you draw' : 'Preview: not saving'));
 }
-function leaveBoard() { closePops(); closeFileMenu(); Object.keys(W).forEach(closeWidget); if (lensEl) toggleLens(); $('board').hidden = true; $('landing').hidden = false; loadList(); }
+function leaveBoard() { closePops(); closeFileMenu(); Object.keys(W).forEach(closeWidget); if (lensEl) toggleLens(); $('board').hidden = true; $('landing').hidden = false;
+  OT = 'nb'; $('otabs').querySelectorAll('button').forEach((x) => x.classList.toggle('on', x.dataset.ot === 'nb'));
+  $('q').value = ''; $('q').placeholder = 'Search your notebooks'; $('pdfhint').hidden = true; loadList(); }
 function newNotebook(bg) { resetBoard([mkPage(bg, 'Board 1')], { id: null, name: '', auto: true }); enterBoard(); }
 function loadNotebook(text, id, name) {
   let j; try { j = JSON.parse(text); } catch (e) { throw new Error('That file is not an Adena Ink notebook.'); }
@@ -1808,6 +1964,7 @@ function loadNotebook(text, id, name) {
     return pg;
   });
   resetBoard(pages.length ? pages : [mkPage('white', 'Board 1')], { id, name: name || j.name || 'Notebook', auto: false });
+  if (id && pages.length) rememberSnaps(j.boards, j.rev);
   enterBoard();
 }
 
@@ -1833,7 +1990,7 @@ function renderList() {
   const list = NBS.filter((n) => !q || n.name.toLowerCase().includes(q));
   if (!NBS.length) { box.innerHTML = '<div class="empty"><div class="big">📓</div><b>No notebooks yet</b><br>Start a new board. It will show up here once you draw on it.</div>'; return; }
   if (!list.length) { box.innerHTML = '<div class="empty">Nothing matches "' + esc(q) + '"</div>'; return; }
-  box.innerHTML = list.map((n) => '<div class="nbi" role="button" tabindex="0" data-id="' + n.id + '"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0b1f4d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h12a4 4 0 0 1 4 4v12H8a4 4 0 0 1-4-4z"/><path d="M8 8h8M8 12h6"/></svg><div class="nm"><b>' + esc(n.name) + '</b><small>' + when(n.modified) + '</small></div>' + (n.subject ? '<span class="chip">' + esc(n.subject) + '</span>' : '') + '<button class="del" data-del="' + n.id + '" title="Move to Drive trash">' + ic('trash', 18) + '</button></div>').join('');
+  box.innerHTML = list.map((n) => '<div class="nbi" role="button" tabindex="0" data-id="' + n.id + '"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0b1f4d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h12a4 4 0 0 1 4 4v12H8a4 4 0 0 1-4-4z"/><path d="M8 8h8M8 12h6"/></svg><div class="nm"><b>' + esc(n.name) + '</b><small>' + when(n.modified) + (n.shared && n.by ? ' · shared by ' + esc(n.by) : '') + '</small></div>' + (n.shared ? '<span class="chip sh">Shared</span>' : '') + (n.subject ? '<span class="chip">' + esc(n.subject) + '</span>' : '') + (n.shared ? '' : '<button class="del" data-del="' + n.id + '" title="Move to Drive trash">' + ic('trash', 18) + '</button>') + '</div>').join('');
 }
 let OT = 'nb', PDFS = null, pdfT;
 $('otabs').onclick = (e) => {
@@ -1875,7 +2032,38 @@ const PDFJS_SRC = [
   'https://unpkg.com/pdfjs-dist@6.2.108/',
   'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/',
 ];
-const PDF_MAX_PAGES = 80, PDF_FIT = 1200;
+const PDF_MAX_PAGES = 80, PDF_FIT = 1200, PDF_ASK_OVER = 12;
+// Long PDFs: ask which pages to bring in ("1-5, 8, 10-12"). Resolves to page numbers, or null for Cancel.
+function parsePages(txt, total) {
+  const out = new Set();
+  for (const part of String(txt).split(/[,;\s]+/).filter(Boolean)) {
+    const m = part.match(/^(\d+)(?:-(\d*))?$/); if (!m) return null;
+    let a = +m[1], b = m[2] === undefined ? a : (m[2] === '' ? total : +m[2]); if (b < a) [a, b] = [b, a];
+    for (let i = Math.max(1, a); i <= Math.min(total, b); i++) out.add(i);
+  }
+  return out.size ? [...out].sort((x, y) => x - y) : null;
+}
+function choosePages(total, base) {
+  return new Promise((resolve) => {
+    const m = document.createElement('div'); m.id = 'modal';
+    const all = Math.min(total, PDF_MAX_PAGES);
+    m.innerHTML = '<div class="mb"><h3>Which pages?</h3><p></p><div class="pgpick"><label><input type="radio" name="pp" value="all" checked> ' + (total > PDF_MAX_PAGES ? 'The first ' + PDF_MAX_PAGES + ' pages' : 'All ' + total + ' pages') + '</label><label><input type="radio" name="pp" value="some"> Pages <input type="text" id="ppr" placeholder="e.g. 1-5, 8" autocomplete="off"></label></div><small id="pperr" style="color:#c2410c;min-height:16px;display:block"></small><div class="row"><button class="btn gr" data-a="0">Cancel</button><button class="btn" data-a="1">Open pages</button></div></div>';
+    m.querySelector('p').textContent = '"' + base + '" has ' + total + ' pages. Each page you pick becomes a board.';
+    document.body.appendChild(m);
+    const inp = m.querySelector('#ppr'), some = m.querySelector('[value=some]');
+    inp.onfocus = () => { some.checked = true; };
+    const done = (ok) => {
+      if (!ok) { m.remove(); resolve(null); return; }
+      if (!some.checked) { m.remove(); resolve(Array.from({ length: all }, (_, i) => i + 1)); return; }
+      const nums = parsePages(inp.value, total);
+      if (!nums) { m.querySelector('#pperr').textContent = 'Type page numbers like 1-5, 8 (this PDF has ' + total + ' pages).'; inp.focus(); return; }
+      if (nums.length > PDF_MAX_PAGES) { m.querySelector('#pperr').textContent = 'Pick up to ' + PDF_MAX_PAGES + ' pages at a time.'; return; }
+      m.remove(); resolve(nums);
+    };
+    m.onclick = (e) => { const b = e.target.closest('[data-a]'); if (b) done(b.dataset.a === '1'); };
+    inp.onkeydown = (e) => { e.stopPropagation(); if (e.key === 'Enter') done(true); if (e.key === 'Escape') done(false); };
+  });
+}
 let pdfjsP = null, pdfBusy = false;
 function loadPdfJs() {
   if (!pdfjsP) pdfjsP = (async () => {
@@ -1902,9 +2090,20 @@ async function pdfToPages(bytes, base) {
   let doc;
   try { doc = await lib.getDocument({ data: bytes, standardFontDataUrl: src + 'standard_fonts/', cMapUrl: src + 'cmaps/', cMapPacked: true }).promise; }
   catch (e) { throw new Error(e && e.name === 'PasswordException' ? 'That PDF is password protected.' : 'That PDF could not be read.'); }
-  const total = doc.numPages, n = Math.min(total, PDF_MAX_PAGES), pages = [];
-  for (let i = 1; i <= n; i++) {
-    toast('Preparing page ' + i + ' of ' + n + (total > n ? ' (first ' + n + ' of ' + total + ')' : '') + '…', 60000);
+  const total = doc.numPages;
+  let nums = Array.from({ length: Math.min(total, PDF_MAX_PAGES) }, (_, i) => i + 1);
+  if (total > PDF_ASK_OVER) {
+    busyClose();
+    const pick = await choosePages(total, base);
+    if (!pick) { try { doc.destroy(); } catch (e) { /* ignore */ } return { pages: [], total, cancelled: true }; }
+    nums = pick;
+  }
+  const n = nums.length, pages = [];
+  busyOpen('Opening "' + base + '"', n, true);
+  for (let j = 0; j < n; j++) {
+    if (busyCancel) break;
+    const i = nums[j];
+    busyStep(j, 'Page ' + (j + 1) + ' of ' + n + (n < total ? ' (page ' + i + ' of the PDF)' : ''));
     try {
       const page = await doc.getPage(i), v0 = page.getViewport({ scale: 1 });
       const vp = page.getViewport({ scale: Math.min(PDF_FIT / v0.width, PDF_FIT / v0.height, 3) });
@@ -1918,6 +2117,7 @@ async function pdfToPages(bytes, base) {
       page.cleanup();
     } catch (e) { /* skip a page that will not draw */ }
   }
+  busyStep(n, 'Done');
   try { doc.destroy(); } catch (e) { /* ignore */ }
   return { pages, total };
 }
@@ -1926,22 +2126,26 @@ async function importPdfBytes(bytes, name, toNew) {
   pdfBusy = true;
   const base = String(name || 'PDF').replace(/\.pdf$/i, '').replace(/\s+/g, ' ').trim().slice(0, 60) || 'PDF';
   try {
-    toast('Opening "' + base + '"…', 60000);
-    const { pages, total } = await pdfToPages(bytes, base);
-    if (!pages.length) throw new Error('No pages could be read from that PDF.');
+    busyOpen('Opening "' + base + '"', 1); busyStep(0, 'Reading the PDF…');
+    const { pages, total, cancelled } = await pdfToPages(bytes, base);
+    busyClose(); $('toast').classList.remove('show');
+    if (cancelled) { pdfBusy = false; return; }
+    if (!pages.length) throw new Error(busyCancel ? 'Stopped. No pages were added.' : 'No pages could be read from that PDF.');
     if (toNew || $('board').hidden) { resetBoard(pages, { id: null, name: base, auto: false }); enterBoard(); }
     else { const first = S.pages.length; S.pages.push(...pages); gotoPage(first); }
     markDirty(); renderRail();
-    toast('Opened ' + pages.length + ' page' + (pages.length === 1 ? '' : 's') + ' from "' + base + '"' + (total > pages.length ? ' (the first ' + pages.length + ' of ' + total + ')' : '') + '. Draw on them like any board.', 5000);
-  } catch (e) { toast(e.message || "Couldn't open that PDF", 7000); }
+    toast('Opened ' + pages.length + ' page' + (pages.length === 1 ? '' : 's') + ' from "' + base + '"' + (total > pages.length ? ' (' + pages.length + ' of its ' + total + ' pages)' : '') + '. Draw on them like any board.', 5000);
+  } catch (e) { busyClose(); toast(e.message || "Couldn't open that PDF", 7000); }
   pdfBusy = false;
 }
 async function openPdfFromDrive(id, name, toNew) {
   if (pdfBusy) { toast('Still opening the last PDF…'); return; }
   closePdfPicker();
-  toast('Downloading "' + (name || 'PDF') + '" from Drive…', 60000);
-  try { const r = await server('getPdf', id); await importPdfBytes(b64ToBytes(r.b64), r.name || name, toNew); }
-  catch (e) { toast(e.message || "Couldn't download that PDF", 7000); }
+  busyOpen('Opening "' + String(name || 'PDF').replace(/\.pdf$/i, '') + '"', 1); busyStep(0, 'Downloading from Drive…');
+  let r;
+  try { r = await server('getPdf', id); }
+  catch (e) { busyClose(); toast(e.message || "Couldn't download that PDF", 7000); return; }
+  await importPdfBytes(b64ToBytes(r.b64), r.name || name, toNew);
 }
 $('pdfIn').addEventListener('change', async () => {
   const f = $('pdfIn').files[0]; $('pdfIn').value = ''; if (!f) return;

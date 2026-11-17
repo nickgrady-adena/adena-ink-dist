@@ -31,19 +31,22 @@ function boot() {
   return { email: email, first: first ? first.charAt(0).toUpperCase() + first.slice(1) : '' };
 }
 
-/** Every .adenaink notebook the person owns (made here or in the extension). */
+/** Every .adenaink notebook the person owns (made here or in the extension), plus ones shared with them. */
 function listNotebooks() {
-  var out = [];
+  var out = [], seen = {};
+  var add = function (f, shared) {
+    var name = f.getName(), id = f.getId();
+    if (!/\.adenaink$/i.test(name) || seen[id]) return;
+    seen[id] = true;
+    var subject = '', by = '';
+    try { var ps = f.getParents(); if (ps.hasNext()) { var p = ps.next().getName(); if (SUBJECTS.indexOf(p) >= 0) subject = p; } } catch (e) {}
+    if (shared) { try { var o = f.getOwner(); by = o ? (o.getName() || o.getEmail()) : ''; } catch (e) {} }
+    out.push({ id: id, name: name.replace(/\.adenaink$/i, ''), modified: f.getLastUpdated().getTime(), size: f.getSize(), subject: subject, shared: shared, by: by });
+  };
   var it = DriveApp.searchFiles("title contains '.adenaink' and trashed = false and 'me' in owners");
-  while (it.hasNext() && out.length < 300) {
-    var f = it.next();
-    var name = f.getName();
-    if (!/\.adenaink$/i.test(name)) continue;
-    var subject = '';
-    var ps = f.getParents();
-    if (ps.hasNext()) { var p = ps.next().getName(); if (SUBJECTS.indexOf(p) >= 0) subject = p; }
-    out.push({ id: f.getId(), name: name.replace(/\.adenaink$/i, ''), modified: f.getLastUpdated().getTime(), size: f.getSize(), subject: subject });
-  }
+  while (it.hasNext() && out.length < 300) add(it.next(), false);
+  var n = 0, sh = DriveApp.searchFiles("title contains '.adenaink' and trashed = false and sharedWithMe");
+  while (sh.hasNext() && n++ < 100) add(sh.next(), true);
   out.sort(function (a, b) { return b.modified - a.modified; });
   return out;
 }
@@ -53,28 +56,54 @@ function getNotebook(id) {
   return { id: id, name: f.getName().replace(/\.adenaink$/i, ''), text: f.getBlob().getDataAsString() };
 }
 
-/** Create (id empty) or update a notebook. Returns its id. */
-function saveNotebook(id, name, text) {
+/**
+ * Create (id empty) or update a notebook. Returns its id.
+ * To keep saves small, boards whose PDF/camera picture is already in the file can be sent as
+ * {snapRef: n} (board n of the saved file) along with baseRev, the "rev" of that saved file.
+ * If the file changed in between (for example the extension saved it), this asks for a full save.
+ */
+function saveNotebook(id, name, text, baseRev) {
   var fileName = safeName_(name) + '.adenaink';
+  if (id && baseRev) {
+    var nb = JSON.parse(text), old;
+    try { old = JSON.parse(DriveApp.getFileById(id).getBlob().getDataAsString()); } catch (e) { throw new Error('NEEDFULL'); }
+    if (!old || old.rev !== baseRev || !old.boards) throw new Error('NEEDFULL');
+    nb.boards.forEach(function (b) {
+      if (b.snapRef === undefined) return;
+      var src = old.boards[b.snapRef];
+      if (!src || !src.snap) throw new Error('NEEDFULL');
+      b.snap = src.snap; delete b.snapRef;
+    });
+    text = JSON.stringify(nb);
+  }
   if (id) {
     try {
       var f = DriveApp.getFileById(id);
       if (!f.isTrashed()) {
-        if (f.getName() !== fileName) f.setName(fileName);
+        if (f.getName() !== fileName) { try { f.setName(fileName); } catch (e) {} }
         try {
           f.setContent(text);
           return { id: f.getId(), saved: Date.now() };
         } catch (big) {
-          // Very large notebooks (lots of PDF pages) are written as a new file, then the old one is trashed.
+          // Very large notebooks are written as a new file, then the old one is trashed.
+          // A notebook someone shared with view-only access lands here too: it becomes the person's own copy.
           var bf = folder_().createFile(Utilities.newBlob(text, 'application/json', fileName));
-          f.setTrashed(true);
-          return { id: bf.getId(), saved: Date.now() };
+          var copied = false;
+          try { f.setTrashed(true); } catch (e) { copied = true; }
+          return { id: bf.getId(), saved: Date.now(), copied: copied };
         }
       }
     } catch (e) { /* deleted in Drive: make a new one below */ }
   }
   var nf = folder_().createFile(Utilities.newBlob(text, 'application/json', fileName));
   return { id: nf.getId(), saved: Date.now() };
+}
+
+/** "Save as PDF to Drive": a PDF of the boards (with ink) in the Adena Ink folder. */
+function savePdfCopy(name, b64) {
+  var fileName = safeName_(name) + '.pdf';
+  var f = folder_().createFile(Utilities.newBlob(Utilities.base64Decode(b64), 'application/pdf', fileName));
+  return { id: f.getId(), name: fileName, url: f.getUrl() };
 }
 
 /** PDFs the person can open (their own or shared with them), newest first. */
